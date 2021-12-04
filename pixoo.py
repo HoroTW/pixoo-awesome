@@ -1,11 +1,11 @@
 """
 Pixoo 
 """
+# %%
 
 import socket
 from time import sleep
-from PIL import Image
-from binascii import unhexlify, hexlify
+from PIL import Image, ImageDraw
 from math import log10, ceil
 
 class Pixoo(object):
@@ -297,10 +297,129 @@ class PixooMax(Pixoo):
       print('[!] Image must be square.')
 
 if __name__ == '__main__':
-    pixoo = PixooMax('11:75:58:51:AC:4D')
-    pixoo.connect()
+    pass
 
-    # mandatory to wait at least 1 second
-    sleep(1)
 
-    pixoo.draw_pic('sonic.png')
+pixoo = PixooMax("11:75:58:F0:DE:D6")
+pixoo.connect()
+# mandatory to wait at least 1 second
+sleep(1)
+
+
+# %% Start of some Animation examples
+# setting some variables
+x_size = 32
+y_size = 32
+x_middle = x_size/2
+y_middle = y_size/2
+short_line = x_size/10
+bgcolor = (120,120,120,255)
+fgcolor1 = (255,90,255,255) # red
+fgcolor2 = (90,255,90,255)  # green
+fgcolor3 = (90,90,255,255)  # blue
+
+def draw_animation(base: Image.Image, step=1):
+    return ImageDraw.Draw(base.copy()).rounded_rectangle(
+        (0 + step, 0 + step, (x_size - 1) - step, (x_size - 1) - step),
+        outline=bgcolor,
+        radius=3,
+    )
+
+# create a new image, RGB mode
+base = Image.new('RGBA', (32,32), (0,0,0))
+
+# %%
+for i in range(5):
+  for j in range(16):
+    layer = draw_animation(j)
+    out = Image.alpha_composite(base, layer)
+    out.save('/tmp/test.png')
+    pixoo.draw_pic('/tmp/test.png')
+    sleep(1.0/30)
+
+  for j in range(15,-1,-1):
+    layer = draw_animation(j)
+    out = Image.alpha_composite(base, layer)
+    out.save('/tmp/test.png')
+    pixoo.draw_pic('/tmp/test.png')
+    sleep(1.0/30)
+
+layer = draw_animation(1,False)
+out = Image.alpha_composite(base, layer)
+out.save('/tmp/test.png')
+pixoo.draw_pic('/tmp/test.png')
+
+# %%
+def draw_time():
+  from datetime import datetime
+  # get current time seconds
+  now = datetime.now()
+  # get milliseconds
+  curMinutes = now.minute
+  curHours = now.hour
+  curSeconds = now.second
+  curMs = now.microsecond/1000
+
+  out = Image.new("RGBA", (32,32), (255, 255, 255, 0))
+  time_sec = Image.new("RGBA", (32,32), (255, 255, 255, 0))
+  time_min = Image.new("RGBA", (32,32), (255, 255, 255, 0))
+  time_hour = Image.new("RGBA", (32,32), (255, 255, 255, 0))
+
+
+  # rotate_angle = curHours*(360/12)
+  rotate_angle = curHours*(360/12) + curMinutes*(360/(12*60))
+  time_hour = time_hour.rotate( rotate_angle , )
+  ImageDraw.Draw(time_hour).line(((15.5,15.5),(15.5,(15.5-7))), fill=fgcolor3, width=2) # hour
+  time_hour = time_hour.rotate( -rotate_angle, )
+
+  # rotate_angle = curMinutes*(360/60)
+  rotate_angle = curMinutes*(360/60) + curSeconds*(360/(60*60))
+  time_min = time_min.rotate( rotate_angle , )
+  ImageDraw.Draw(time_min).line(((15.5,15.5),(15.5,(15.5-11))), fill=fgcolor2, width=1) # minute
+  time_min = time_min.rotate( -rotate_angle , )
+
+  # rotate_angle = curSeconds*(360/60)
+  rotate_angle = curSeconds*(360/60) + curMs*(360/(60*1000))
+  time_sec = time_sec.rotate( rotate_angle , )
+  ImageDraw.Draw(time_sec).line(((15.5,15.5),(15.5,(15.5-13))), fill=fgcolor1, width=1) # second
+  time_sec = time_sec.rotate( -rotate_angle )
+
+  # merge images
+  out = Image.alpha_composite(out, time_hour.resize((128,128)).resize((32,32), Image.LANCZOS))
+  out = Image.alpha_composite(out, time_min.resize((128,128)).resize((32,32), Image.LANCZOS))
+  out = Image.alpha_composite(out, time_sec.resize((128,128)).resize((32,32), Image.LANCZOS))
+
+
+  ImageDraw.Draw(out).rounded_rectangle((15,15,16,16),radius=2, fill=(255,255,255,80))
+
+  return out
+
+
+
+
+def draw_hour_indicators():
+  out = Image.new("RGBA", (x_size, y_size), (0, 0, 0, 0))
+  ImageDraw.Draw(out).line( ((x_middle, 0), (x_middle, short_line)), fill=bgcolor, width=1)
+
+  out.alpha_composite(out.copy().rotate(180))
+  out.alpha_composite(out.copy().rotate(90))
+  temp = out.copy()
+
+  out.alpha_composite(temp.copy().rotate(30))
+  out.alpha_composite(temp.copy().rotate(-30))
+
+  return out
+
+
+while True:
+  base = Image.new('RGBA', (32,32), (0,0,0))
+  base.alpha_composite(draw_hour_indicators())
+  clock_border_width = 1
+  ImageDraw.Draw(base).rounded_rectangle((0 + clock_border_width, 0 + clock_border_width, 31 - clock_border_width, 31 - clock_border_width),outline=bgcolor, radius=3)
+  base.alpha_composite(draw_animation(1,False))
+  base.alpha_composite(draw_time())
+  ImageDraw.Draw(base).rectangle((0,0,31,31), outline=(0,0,0,255))
+
+  base.save('/tmpfs/test.png')
+  pixoo.draw_pic('/tmpfs/test.png')
+  sleep(1.0/5)
