@@ -1,0 +1,17 @@
+{
+    "files.exclude": {
+        "**/.git": true,
+        "**/.svn": true,
+        "**/.hg": true,
+        "**/CVS": true,
+        "**/.DS_Store": true,
+        "**/Thumbs.db": true,
+        "pyproject.toml": true,
+        "prospector.yaml": true,
+        "**/__pycache__": true,
+        ".venv": true
+    },
+    "python.formatting.provider": "black",
+    "python.linting.prospectorEnabled": true,
+    "explorerExclude.backup": null,
+}
