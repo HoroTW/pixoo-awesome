@@ -1,26 +1,20 @@
-Divoom Pixoo client for Python3
-===============================
+Pixoo-Awesome is a tool to get more out of your Pixoo Devices.
+===============================================================
 
-This small python script provides a way to communicate with a Divoom Pixoo
-over Bluetooth. 
+It uses the [Pixoo-Client](https://github.com/virtualabs/pixoo-client) to connect to your Pixoo devices and send data to them.
 
-This script provides a class able to manage a Pixoo, but you need to create your
-own code to make it work.
+I target the Pixoo-Max because it's the device I have 😀 but it should also work with other Pixoo devices but you might need to adjust some sizes ^^.
 
-Dependencies
-------------
+To use this project you should clone the repository and copy the `example.env` file as `local.env` file.
+You need to find the mac address of your Pixoo device and put it in the `local.env` file.
 
-Use a third-party software to bind your computer with your pixoo (BlueZ + blueman-applet for instance).
-Then you may use this python class to manage your Pixoo.
+I would suggest creating a `.venv` so the project dependencies can't conflict with other projects.
 
-How to use this class
----------------------
+Install the dependencies with `pip install -r requirements.txt`.
 
-This class provides many methods to connect and manage a Pixoo device.
-
-* `connect()̀`: creates a connection with the device and keeps it open while the script is active
-* `draw_pic()`: draws a picture (resized to 16x16 pixels) from a PNG file
-* `draw_anim()`: displays an animation on the Pixoo based on a GIF file (16x16 pixels)
-* `set_system_brightness`: set the global brightness to a specific level (0-100)
+You might wan't to change the displayed items by editing the `pixoo.py` file.
 
 
+## Development
+For development you should also install the `requirements-dev.txt` file.
+This project uses `black` as a formatter and `prospector` as a linter.
