@@ -1,58 +1,57 @@
-import requests
 from datetime import date, datetime
 from os import getenv
+import requests
 from dotenv import load_dotenv
 from cachetools import cached, TTLCache
 from PIL import Image, ImageDraw
 
-load_dotenv("local.env")
+load_dotenv("local.env", verbose=True)
 
-ENDPOINT = 'https://api.github.com/graphql'
-HEADERS = {'Authorization': 'Bearer ' + getenv('GITHUB_TOKEN')}
+ENDPOINT = "https://api.github.com/graphql"
+__github_token = getenv("GITHUB_TOKEN")
+assert __github_token is not None, "Did you copy the example.env to local.env?"
+assert __github_token != "here_goes_your_token", "Please add your github token to local.env"
+
+HEADERS = {"Authorization": "Bearer " + __github_token}
 
 DEBUG = False
 SECONDS_TO_CACHE = 60 * 30 if not DEBUG else 1
 
 
 @cached(cache=TTLCache(maxsize=1024, ttl=SECONDS_TO_CACHE))
-def get_contributions_for_day(
-    user: str, date: date = datetime.today().date()) -> int:
+def get_contributions_for_day(user: str, date_to_check: date = datetime.today().date()) -> int:
     """
     Return the number of contributions for a given user on a given day.
     The return is cached for 30 minutes.
     """
-    date = date.strftime('%Y-%m-%dT00:00:00Z')
+    date_to_check = date_to_check.strftime("%Y-%m-%dT00:00:00Z")
 
     query = f"""
     query {{
         user(login: "{user}") {{
-            contributionsCollection(from: "{date}", to: "{date}") {{
+            contributionsCollection(from: "{date_to_check}", to: "{date_to_check}") {{
                 totalCommitContributions
             }}
         }}
     }}"""
 
-    r = requests.post(ENDPOINT, json={'query': query}, headers=HEADERS)
+    req = requests.post(ENDPOINT, json={"query": query}, headers=HEADERS)
+    print(f"Requesting data from github should be cached for {SECONDS_TO_CACHE/60 :.1f} minutes")
 
-    if r.status_code != 200:
-        raise Exception(f"Query failed to run - return code: {r.status_code}")
+    if req.status_code != 200:
+        raise requests.RequestException(f"Query failed to run - return code: {req.status_code}")
 
-    r = r.json()["data"]
-    c_count = r['user']['contributionsCollection']['totalCommitContributions']
+    c_count = req.json()["data"]["user"]["contributionsCollection"]["totalCommitContributions"]
     return c_count
 
 
 def draw_github_contribution(
-        base: Image,
-        username: str,
-        required_contributions=1,
-        colors={
-            "good": (0, 255, 0, 255),  # green
-            "bad": (255, 0, 0, 255),  # red
-            "error": (255, 255, 0, 255)  # yellow
-        },
-        x=31,
-        y=0):
+    base: Image,
+    username: str,
+    required_contributions=1,
+    colors=((0, 255, 0, 255), (255, 0, 0, 255), (255, 255, 0, 255)),  # green, red, yellow
+    position=(31, 0),
+):
     """
     Draw a github contribution pixel on position x, y it shows if you have
     reached your daily contribution goal.
@@ -61,11 +60,12 @@ def draw_github_contribution(
     - good, bad, error   with the default green, red, yellow\n
     You can define your own colors the values are RGBA tuples.
     """
+    good, bad, error = colors
 
     try:
         if get_contributions_for_day(username) >= required_contributions:
-            ImageDraw.Draw(base).point((x, y), fill=(colors["good"]))
+            ImageDraw.Draw(base).point(position, fill=(good))
         else:
-            ImageDraw.Draw(base).point((x, y), fill=(colors["bad"]))
-    except:
-        ImageDraw.Draw(base).point((x, y), fill=(colors["error"]))
+            ImageDraw.Draw(base).point(position, fill=(bad))
+    except requests.RequestException:
+        ImageDraw.Draw(base).point(position, fill=(error))
