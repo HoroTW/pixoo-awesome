@@ -11,7 +11,9 @@ load_dotenv("local.env", verbose=True)
 
 if __name__ == "__main__":
     bt_mac_addr = getenv("BT_MAC_ADDR")
+    tmp_folder = getenv("TEMP_FOLDER")
     assert bt_mac_addr is not None, "Did you copy the example.env to local.env?"
+    assert tmp_folder is not None, "Did you copy the example.env to local.env?"
 
     print(bt_mac_addr)
     pixoo = pixc.PixooMax(bt_mac_addr)
@@ -26,6 +28,6 @@ if __name__ == "__main__":
         draw_github_contribution(base, "HoroTW", required_contributions=1)
 
         # workaround for final displaying
-        base.save("tmp.png")
-        pixoo.draw_pic("tmp.png")
+        base.save(tmp_folder + "tmp.png")
+        pixoo.draw_pic(tmp_folder + "tmp.png")
         sleep(1.0 / 10)  # 10 fps are already pretty smooth
