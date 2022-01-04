@@ -56,9 +56,9 @@ def draw_github_contribution(
     Draw a github contribution pixel on position x, y it shows if you have
     reached your daily contribution goal.
 
-    Colors is a dict with the following keys:
-    - good, bad, error   with the default green, red, yellow\n
-    You can define your own colors the values are RGBA tuples.
+    `colors` is a tuple of 3 tuples of the form (r, g, b, a) where the first one is the good color
+    the second one is the bad color and the third one is the error color.
+    Eg: ( (0, 255, 0, 255), (255, 0, 0, 255), (255, 255, 0, 255) )
     """
     good, bad, error = colors
 
