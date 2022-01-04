@@ -36,7 +36,7 @@ def get_contributions_for_day(user: str, date_to_check: date = datetime.today().
     }}"""
 
     req = requests.post(ENDPOINT, json={"query": query}, headers=HEADERS)
-    print(f"Requesting data from github should be cached for {SECONDS_TO_CACHE/60 :.1f} minutes")
+    print(f"Requesting data from github is cached for {SECONDS_TO_CACHE/60 :.1f} minutes")
 
     if req.status_code != 200:
         raise requests.RequestException(f"Query failed to run - return code: {req.status_code}")
