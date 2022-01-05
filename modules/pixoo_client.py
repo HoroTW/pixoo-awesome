@@ -34,7 +34,7 @@ class Pixoo:
         """
         Connect to SPP.
         """
-        print(f"Connecting to {self.mac_address}...")
+        print("Connecting to "+self.mac_address+"...")
         self.btsock = socket.socket(socket.AF_BLUETOOTH, socket.SOCK_STREAM, socket.BTPROTO_RFCOMM)
         self.btsock.connect((self.mac_address, 1))
         sleep(1)  # mandatory to wait at least 1 second
@@ -256,7 +256,7 @@ class PixooMax(Pixoo):
 
     def encode_image(self, filepath):
         img = Image.open(filepath)
-        img = img.convert(mode="P", palette=Image.ADAPTIVE, colors=256).convert(mode="RGB")
+        img = img.convert(mode="P", palette=Image.ADAPTIVE, colors=256).convert(mode="RGBA")
         return self.encode_raw_image(img)
 
     def encode_raw_image(self, img):
