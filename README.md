@@ -31,11 +31,22 @@ pip install -r requirements.txt
 python pixoo.py
 ```
 
-Install the dependencies with `pip install -r requirements.txt`.
-
-You might wan't to change the displayed items by editing the `pixoo.py` file.
+You might wan't to change what is shown on your Pixoo device by editing the `pixoo.py` file.
 
 
 ## Development
 For development you should also install the `requirements-dev.txt` file.
 This project uses `black` as a formatter and `prospector` as a linter.
+
+Pull requests are welcome! 🙌 🙌 🙌
+
+## Feature Ideas:
+ - more Indicators (Single Pixels to represent some value like existing github "did <some user> made a commit today?")
+ - different graphs to show values like cpu usage, memory usage, etc.
+ - a scheduler to display different modes time based (like e.g. the weather forecast)
+ - display GIFs
+ - display pictures with panning and zooming
+ - display an folder with pictures as a slideshow
+ - a night mode to turn the screen off at night
+ - a dynamic Text display (would be cool if it could choose a text size so that it fits on the screen even on multiline text)
+ - the integration to home assistant
