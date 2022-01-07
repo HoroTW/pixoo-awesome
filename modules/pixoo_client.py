@@ -256,7 +256,7 @@ class PixooMax(Pixoo):
 
     def encode_image(self, filepath):
         img = Image.open(filepath)
-        img = img.convert(mode="P", palette=Image.ADAPTIVE, colors=256).convert(mode="RGB")
+        img = img.convert(mode="P", palette=Image.ADAPTIVE, colors=256).convert(mode="RGBA")
         return self.encode_raw_image(img)
 
     def encode_raw_image(self, img):
