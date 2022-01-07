@@ -15,15 +15,19 @@ assert __github_token != "here_goes_your_token", "Please add your github token t
 HEADERS = {"Authorization": "Bearer " + __github_token}
 
 DEBUG = False
-SECONDS_TO_CACHE = 60 * 30 if not DEBUG else 1
+SECONDS_TO_CACHE = 0 if DEBUG else 60  # the rate limit is 5000 of this query per hour
 
 
 @cached(cache=TTLCache(maxsize=1024, ttl=SECONDS_TO_CACHE))
-def get_contributions_for_day(user: str, date_to_check: date = datetime.today().date()) -> int:
+def get_contributions_for_day(user: str, date_to_check: date = None) -> int:
     """
     Return the number of contributions for a given user on a given day.
     The return is cached for 30 minutes.
+    If date_to_check is None (default case) it will return the contributions for today.
     """
+    if date_to_check is None:
+        date_to_check = datetime.today()
+
     date_to_check = date_to_check.strftime("%Y-%m-%dT00:00:00Z")
 
     query = f"""
