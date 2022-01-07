@@ -10,6 +10,11 @@ You need to find the mac address of your Pixoo device and put it in the `local.e
 
 I would suggest creating a `.venv` so the project dependencies can't conflict with other projects.
 
+## Requirements
+- Python 3.6+
+- The packages in the requirements.txt file
+- The `local.env` file with the mac address of your Pixoo device
+
 ## Quick start
 ```bash
 # copy the example.env file to local.env
