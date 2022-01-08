@@ -1,3 +1,4 @@
+import math
 import socket
 from math import log10, ceil
 from time import sleep
@@ -67,13 +68,29 @@ class Pixoo:
         # return output buffer
         return frame_buffer + frame_suffix
 
-    def send(self, cmd, args):
+    def send(self, cmd, args, retry_count=math.inf):
         """
-        Send data to SPP.
+        Send data to SPP. Try to reconnect if the socket got closed.
         """
         spp_frame = self.__spp_frame_encode(cmd, args)
-        if self.btsock is not None:
-            nb_sent = self.btsock.send(bytes(spp_frame))
+        self.__send_with_retry_reconnect(bytes(spp_frame), retry_count)
+
+    def __send_with_retry_reconnect(self, bytes_to_send, retry_count=5):
+        """
+        Send data with a retry in case of socket errors.
+        """
+        while retry_count >= 0:
+            try:
+                if self.btsock is not None:
+                    self.btsock.send(bytes_to_send)
+                    return
+
+                print(f"[!] Socket is closed. Reconnecting... ({retry_count} tries left)")
+                retry_count -= 1
+                self.connect()
+            except (ConnectionResetError, OSError):  # OSError is for Device is Offline
+                self.btsock = None  # reset the btsock
+                print("[!] Connection was reset. Retrying...")
 
     def set_system_brightness(self, brightness):
         """
