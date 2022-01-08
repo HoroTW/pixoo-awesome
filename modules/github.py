@@ -4,6 +4,7 @@ import requests
 from dotenv import load_dotenv
 from cachetools import cached, TTLCache
 from PIL import Image, ImageDraw
+from threading import Thread
 
 load_dotenv("local.env", verbose=True)
 
@@ -16,13 +17,15 @@ HEADERS = {"Authorization": "Bearer " + __github_token}
 
 DEBUG = False
 SECONDS_TO_CACHE = 0 if DEBUG else 60  # the rate limit is 5000 of this query per hour
+USER_CONTRIBUTIONS_DICT = {}
+REQ_THREAD: Thread = None
 
 
 @cached(cache=TTLCache(maxsize=1024, ttl=SECONDS_TO_CACHE))
-def get_contributions_for_day(user: str, date_to_check: date = None) -> int:
+def fill_contributions_for_day_for_user(user: str, date_to_check: date = None) -> int:
     """
-    Return the number of contributions for a given user on a given day.
-    The return is cached for 30 minutes.
+    Fills the `USER_CONTRIBUTIONS_DICT` for the given user with the contributions for the given date.
+    The return is cached for 1 minute.
     If date_to_check is None (default case) it will return the contributions for today.
     """
     if date_to_check is None:
@@ -46,7 +49,7 @@ def get_contributions_for_day(user: str, date_to_check: date = None) -> int:
         raise requests.RequestException(f"Query failed to run - return code: {req.status_code}")
 
     c_count = req.json()["data"]["user"]["contributionsCollection"]["totalCommitContributions"]
-    return c_count
+    USER_CONTRIBUTIONS_DICT[user] = c_count
 
 
 def draw_github_contribution(
@@ -65,9 +68,16 @@ def draw_github_contribution(
     Eg: ( (0, 255, 0, 255), (255, 0, 0, 255), (255, 255, 0, 255) )
     """
     good, bad, error = colors
+    global REQ_THREAD
+
+    if REQ_THREAD is None or REQ_THREAD.is_alive() is False:
+        REQ_THREAD = Thread(target=fill_contributions_for_day_for_user, args=(username,))
+        REQ_THREAD.start()
+
+    eventually_correct_contributions = USER_CONTRIBUTIONS_DICT.get(username, 0)
 
     try:
-        if get_contributions_for_day(username) >= required_contributions:
+        if eventually_correct_contributions >= required_contributions:
             ImageDraw.Draw(base).point(position, fill=(good))
         else:
             ImageDraw.Draw(base).point(position, fill=(bad))
